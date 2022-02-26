@@ -1,0 +1,16 @@
+$continue = $true
+while($continue){
+    try {
+        $process = Get-Process -Name "win32calc"
+        
+        if($process){
+            $process | Stop-Process
+            $continue = $false
+        }
+        Start-Sleep -s 1
+    } catch{
+        $continue = $true
+        Write-Host "calc was not started yet"
+        Start-Sleep -s 3
+    }
+}

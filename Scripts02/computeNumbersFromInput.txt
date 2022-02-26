@@ -1,0 +1,24 @@
+$ok = $true
+$result = 0
+try{
+    [int]$first = Read-Host "enter first number"
+    [int]$second = Read-Host "enter second number"
+
+}
+catch{
+    $ok = $false
+    Write-Host "you have to input a number!"
+}
+if($ok){
+    $sum = $first + $second
+    if($sum -lt 20){
+        if($first -lt $second){
+            $result = $second - $first
+        }
+        else{$result = $first - $second}
+        Write-Host $result
+    }
+    else{
+        Write-Host $sum
+    }
+}

@@ -1,0 +1,11 @@
+ $Folders = Get-ChildItem C:\windows\Boot -Name -Recurse
+
+ foreach($Folder in $Folders)
+ {
+    $Folder = Split-Path -Path $Folder -Leaf
+    foreach($tmp in $Folder){
+        $tmp = Split-Path -Path $tmp -Leaf
+        Write-Host $tmp
+    }
+    
+ }
