@@ -62,6 +62,7 @@ cd hkcu:\software\microsoft\windows\currentversion\run - tady se je vse, co se s
 
 vytvoreni noveho klice pro automaticke spusteni kalkulacky pri startu
 New-Item -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Run\ -Name calc -Value "calc.exe"
+New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run\" -Name "calc" -Value calc.exe
 new-itemproperty . -name calc -PropertyName string -value calc.exe
 smazani registru: remove-itemproperty . -name calc == ta tecka znamena, ze to chci delat tady, v tom aktualnim adresari
 get-itemproperty vypise registry
@@ -95,7 +96,7 @@ Get-Content C:\temporary\obsah.txt
 
 
 Reseni od Vojacka:
-$path = '"C:\mujtemp'
+$path = 'C:\mujtemp'
 if(!Test-Path $path){
 	new-item -itemtype Directory -Force -Path $path
 	write-host -f yellow "Create folder"
@@ -114,9 +115,72 @@ iexpress ve windowsu vytvori novy nas .exe soubor
 DU
 vytvorte skript, ktery bude cekat na proces calc.exe a ukonci jej
 
+$continue = $true
+while($continue){
+    try {
+        $process = Get-Process -Name "win32calc"
+        
+        if($process){
+            $process | Stop-Process
+            $continue = $false
+        }
+        Start-Sleep -s 1
+    } catch{
+        $continue = $true
+        Write-Host "calc was not started yet"
+        Start-Sleep -s 3
+    }
+}
+
+
 vytvorte skript, ktery nacte do promennych $a a $b hodnoty z klavesnice a pokud bude jejich soucet vetsi nez 20, tak vypise tento soucet.
 V opacnem pripade tyto cisla odecte a vypise jejich rozdil
 
+$ok = $true
+$result = 0
+try{
+    [int]$first = Read-Host "enter first number"
+    [int]$second = Read-Host "enter second number"
+
+}
+catch{
+    $ok = $false
+    Write-Host "you have to input a number!"
+}
+if($ok){
+    $sum = $first + $second
+    if($sum -lt 20){
+        if($first -lt $second){
+            $result = $second - $first
+        }
+        else{$result = $first - $second}
+        Write-Host $result
+    }
+    else{
+        Write-Host $sum
+    }
+}
+
+
 Zajistete aby se skripty daly spoustet bez omezeni i po ulozeni v ISE
 
+Tady nevím, co přesně chce, kdyby to ale nešlo, mělo by stačit vlézt do složky a nastavit tam Set-ExectionPolicy Unrestricted
+a pak klasicky ./scriptName
+
 Vypiste obsah vsech adresaru v prvni urovni adresare C:\windows\boot
+Get-ChildItem C:\windows\boot -Directory -recurse == toto neni dost, predpokladam, že chce vypsat úplně vše, ale že úplně
+asi řešení:
+ $Folders = Get-ChildItem C:\windows\Boot -Name -Recurse
+
+ foreach($Folder in $Folders)
+ {
+    $Folder = Split-Path -Path $Folder -Leaf
+    foreach($tmp in $Folder){
+        $tmp = Split-Path -Path $tmp -Leaf
+        Write-Host $tmp
+    }
+    
+ }
+
+vypíše to ale i složky, což on možná nechce
+
