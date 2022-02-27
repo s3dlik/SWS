@@ -118,7 +118,7 @@ vytvorte skript, ktery bude cekat na proces calc.exe a ukonci jej
 $continue = $true
 while($continue){
     try {
-        $process = Get-Process -Name "win32calc"
+        $process = Get-Process -Name "win32calc" -ErrorAction Stop
         
         if($process){
             $process | Stop-Process
